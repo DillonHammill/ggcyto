@@ -67,9 +67,20 @@ fortify.flowFrame <- function(model, data, ...){
 
 #' convert pData to data.table
 #' @noRd 
-.pd2dt <- function(pd){
-  pd <- as.data.table(pd, keep.rownames = TRUE, stringsAsFactors = FALSE)
+.pd2dt <- function(pd, pdata_order = NULL){
+  pd <- as.data.table(pd, keep.rownames = TRUE)
   setnames(pd, "rn", ".rownames")
+  
+  # Apply factor ordering if specified
+  if (!is.null(pdata_order)) {
+    for (col_name in names(pdata_order)) {
+      if (col_name %in% colnames(pd)) {
+        levels_order <- pdata_order[[col_name]]
+        pd[[col_name]] <- factor(pd[[col_name]], levels = levels_order)
+      }
+    }
+  }
+  
   pd
 }
 #' Convert a flowFrame/flowSet/GatingSet to a ggplot-compatible data.table
@@ -100,7 +111,9 @@ fortify.flowSet <- function(model, data, ...){
   df <- .fs2dt(model)
 
   #merge with pData
-  pd <- .pd2dt(pData(model))
+  # Get pdata_order attribute if it exists
+  pdata_order <- attr(model, "pdata_order")
+  pd <- .pd2dt(pData(model), pdata_order = pdata_order)
   
   merge(pd, df, by = ".rownames")
 
@@ -232,9 +245,12 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, ...){
       pd <- attr(model,"pd")
       if(!is.null(pd)){
           # merge with pd
-            
+          
+        # Get pdata_order attribute if it exists
+        pdata_order <- attr(model, "pdata_order")
+        
         if(!is(pd, "data.table"))
-            pd <- .pd2dt(pd)
+            pd <- .pd2dt(pd, pdata_order = pdata_order)
         df <- merge(df, pd, by = ".rownames")  
         attr(df, "annotated") <- TRUE
       }

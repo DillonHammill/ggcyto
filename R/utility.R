@@ -92,25 +92,29 @@ marginalFilter <- function(fs, dims, ...){
 
 #' Set plotting order for pData columns
 #' 
-#' This function converts specified pData columns to factors with custom level ordering,
-#' allowing users to control the order in which samples appear in faceted plots.
-#' By default, pData variables are stored as strings and are ordered alphabetically.
-#' This function provides a clean way to set a custom plotting order.
+#' This function sets custom ordering for specified pData columns, allowing users
+#' to control the order in which samples appear in faceted plots. By default, pData
+#' variables are stored as strings and are ordered alphabetically. This function
+#' stores ordering information that is applied during plot generation.
 #' 
 #' @param data A flowSet, ncdfFlowSet, or GatingSet object
 #' @param ... Named arguments where the name is the pData column and the value is 
 #'   a character vector specifying the desired order of levels. If the value is NULL,
-#'   the column will be converted to a factor with levels in the order they appear.
+#'   the ordering will use unique values in the order they appear in the data.
 #' 
-#' @return The input object with modified pData where specified columns are converted to factors
+#' @return The input object with a "pdata_order" attribute containing the ordering information
 #' 
 #' @details
-#' The function modifies the pData slot of the input object by converting specified
-#' columns to factors with custom level ordering. This affects how the data will be
-#' ordered in faceted plots (e.g., when using \code{facet_grid} or \code{facet_wrap}).
+#' The function stores ordering information as an attribute on the flowSet/GatingSet object.
+#' This ordering is automatically applied when the data is fortified for plotting, converting
+#' the specified columns to factors with the given level ordering. This affects how the data
+#' will be ordered in faceted plots (e.g., when using \code{facet_grid} or \code{facet_wrap}).
 #' 
-#' If a column value is provided as NULL, the function will use the unique values
-#' in the order they appear in the data.
+#' The original pData is not modified - only the ordering information is stored as an attribute.
+#' The factor conversion happens during the fortify step when preparing data for plotting.
+#' 
+#' If a column value is provided as NULL, the function will store the unique values
+#' in the order they appear in the data as the desired ordering.
 #' 
 #' @examples
 #' \dontrun{
@@ -129,15 +133,12 @@ marginalFilter <- function(fs, dims, ...){
 #'                       Patient = c("7", "6", "5"),
 #'                       Visit = c("6", "5"))
 #' 
-#' # Convert to factor with automatic ordering (order of appearance)
+#' # Use automatic ordering (order of appearance)
 #' fs <- set_pdata_order(fs, Patient = NULL)
 #' }
 #' 
 #' @export
 set_pdata_order <- function(data, ...) {
-  # Get the pData
-  pd <- pData(data)
-  
   # Get the arguments
   args <- list(...)
   
@@ -145,7 +146,8 @@ set_pdata_order <- function(data, ...) {
     stop("At least one column must be specified")
   }
   
-  # Process each argument
+  # Validate that columns exist in pData
+  pd <- pData(data)
   for (col_name in names(args)) {
     if (!col_name %in% colnames(pd)) {
       stop("Column '", col_name, "' not found in pData")
@@ -153,25 +155,22 @@ set_pdata_order <- function(data, ...) {
     
     levels_order <- args[[col_name]]
     
+    # If NULL, use unique values in order of appearance
     if (is.null(levels_order)) {
-      # Use unique values in order of appearance
-      pd[[col_name]] <- factor(pd[[col_name]], levels = unique(pd[[col_name]]))
+      args[[col_name]] <- unique(as.character(pd[[col_name]]))
     } else {
-      # Use provided order
       # Check if all values in the data are in the provided levels
-      missing_levels <- setdiff(unique(pd[[col_name]]), levels_order)
+      missing_levels <- setdiff(unique(as.character(pd[[col_name]])), levels_order)
       if (length(missing_levels) > 0) {
         warning("Some values in '", col_name, "' are not in the provided levels: ",
                 paste(missing_levels, collapse = ", "),
                 ". These will be converted to NA.")
       }
-      
-      pd[[col_name]] <- factor(pd[[col_name]], levels = levels_order)
     }
   }
   
-  # Set the modified pData back
-  pData(data) <- pd
+  # Store ordering information as an attribute instead of modifying pData
+  attr(data, "pdata_order") <- args
   
   return(data)
 }

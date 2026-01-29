@@ -188,13 +188,18 @@ add_ggcyto <- function(e1, e2, e2name){
   }else if(is.ggproto(e2)){
     layer_data <- e2$data  
     if(!is.null(layer_data)){
-      pd <- .pd2dt(pData(fs))
+      # Get pdata_order from fs if it exists
+      pdata_order <- attr(fs, "pdata_order")
+      pd <- .pd2dt(pData(fs), pdata_order = pdata_order)
     }
     
     if(is(layer_data, "filterList")){
       
       if(!isTRUE(attr(layer_data, "pd")))
         attr(layer_data, "pd") <- pd
+      # Propagate pdata_order attribute to filterList
+      if(!is.null(pdata_order))
+        attr(layer_data, "pdata_order") <- pdata_order
       #do the lazy-fortify here since we  may need the pd info from main flow data
       
       layer_data <- fortify(layer_data)
