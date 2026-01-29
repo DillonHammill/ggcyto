@@ -68,7 +68,7 @@ fortify.flowFrame <- function(model, data, ...){
 #' convert pData to data.table
 #' @noRd 
 .pd2dt <- function(pd){
-  pd <- as.data.table(pd, keep.rownames = TRUE)
+  pd <- as.data.table(pd, keep.rownames = TRUE, stringsAsFactors = FALSE)
   setnames(pd, "rn", ".rownames")
   pd
 }

@@ -13,7 +13,7 @@
   }
 
   res <- .do_loop(index = index, .data = .data, ..., .id = .id)
-  res <- rbindlist(res)
+  res <- rbindlist(res, use.names = TRUE, fill = TRUE)
   setkeyv(res, .id)
   res
 }
@@ -47,7 +47,7 @@
 
   index <- sampleNames(.data)
   res <- .do_loop(index = index, .data = .data, ..., .id = .id)
-  res <- rbindlist(res)
+  res <- rbindlist(res, use.names = TRUE, fill = TRUE)
   setkeyv(res, .id)
   res
 }
@@ -88,6 +88,92 @@
 #' @export
 marginalFilter <- function(fs, dims, ...){
   boundaryFilter(x = dims, ...)
+}
+
+#' Set plotting order for pData columns
+#' 
+#' This function converts specified pData columns to factors with custom level ordering,
+#' allowing users to control the order in which samples appear in faceted plots.
+#' By default, pData variables are stored as strings and are ordered alphabetically.
+#' This function provides a clean way to set a custom plotting order.
+#' 
+#' @param data A flowSet, ncdfFlowSet, or GatingSet object
+#' @param ... Named arguments where the name is the pData column and the value is 
+#'   a character vector specifying the desired order of levels. If the value is NULL,
+#'   the column will be converted to a factor with levels in the order they appear.
+#' 
+#' @return The input object with modified pData where specified columns are converted to factors
+#' 
+#' @details
+#' The function modifies the pData slot of the input object by converting specified
+#' columns to factors with custom level ordering. This affects how the data will be
+#' ordered in faceted plots (e.g., when using \code{facet_grid} or \code{facet_wrap}).
+#' 
+#' If a column value is provided as NULL, the function will use the unique values
+#' in the order they appear in the data.
+#' 
+#' @examples
+#' \dontrun{
+#' library(ggcyto)
+#' data(GvHD)
+#' fs <- GvHD[subset(pData(GvHD), Patient %in% 5:7 & Visit %in% c(5:6))[["name"]]]
+#' 
+#' # Set custom order for Patient column
+#' fs <- set_pdata_order(fs, Patient = c("7", "6", "5"))
+#' 
+#' # Now plots will use this order
+#' ggcyto(fs, aes(x = `FSC-H`)) + geom_histogram() + facet_grid(Patient~Visit)
+#' 
+#' # Set order for multiple columns
+#' fs <- set_pdata_order(fs, 
+#'                       Patient = c("7", "6", "5"),
+#'                       Visit = c("6", "5"))
+#' 
+#' # Convert to factor with automatic ordering (order of appearance)
+#' fs <- set_pdata_order(fs, Patient = NULL)
+#' }
+#' 
+#' @export
+set_pdata_order <- function(data, ...) {
+  # Get the pData
+  pd <- pData(data)
+  
+  # Get the arguments
+  args <- list(...)
+  
+  if (length(args) == 0) {
+    stop("At least one column must be specified")
+  }
+  
+  # Process each argument
+  for (col_name in names(args)) {
+    if (!col_name %in% colnames(pd)) {
+      stop("Column '", col_name, "' not found in pData")
+    }
+    
+    levels_order <- args[[col_name]]
+    
+    if (is.null(levels_order)) {
+      # Use unique values in order of appearance
+      pd[[col_name]] <- factor(pd[[col_name]], levels = unique(pd[[col_name]]))
+    } else {
+      # Use provided order
+      # Check if all values in the data are in the provided levels
+      missing_levels <- setdiff(unique(pd[[col_name]]), levels_order)
+      if (length(missing_levels) > 0) {
+        warning("Some values in '", col_name, "' are not in the provided levels: ",
+                paste(missing_levels, collapse = ", "),
+                ". These will be converted to NA.")
+      }
+      
+      pd[[col_name]] <- factor(pd[[col_name]], levels = levels_order)
+    }
+  }
+  
+  # Set the modified pData back
+  pData(data) <- pd
+  
+  return(data)
 }
 
 gg_add <- function(e1, e2, ...) {
