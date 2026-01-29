@@ -1,7 +1,4 @@
-context("pData ordering")
-
 test_that("set_pdata_order stores ordering attribute", {
-  library(ggcyto)
   data(GvHD)
   
   # Create a subset of the data
@@ -52,7 +49,6 @@ test_that("set_pdata_order handles errors correctly", {
 })
 
 test_that("factor ordering is applied during fortify", {
-  library(ggcyto)
   data(GvHD)
   
   # Create a subset
@@ -70,7 +66,6 @@ test_that("factor ordering is applied during fortify", {
 })
 
 test_that("factor ordering works with ggcyto plots", {
-  library(ggcyto)
   data(GvHD)
   
   # Create a subset
