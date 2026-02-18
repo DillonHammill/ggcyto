@@ -12,6 +12,10 @@ test_that("ggcyto accepts custom pData with factors for ordering", {
   # Create plot with custom pData
   p <- ggcyto(fs, aes(x = `FSC-H`), pData = custom_pd) + geom_histogram()
   
+  # Verify that original pData in fs is NOT modified (should still be character)
+  expect_type(pData(p$data)$Patient, "character")
+  expect_type(pData(p$data)$Visit, "character")
+  
   # Convert to ggplot to check the data
   p_gg <- as.ggplot(p)
   

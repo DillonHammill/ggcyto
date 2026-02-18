@@ -51,7 +51,7 @@ compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, ...)
   centroids <- stat_position(gates, ...)
   
   stats <- merge(centroids, stats, by = ".rownames") # merge stats with centroid
-  merge(stats, .pd2dt(pData(fs)), by = ".rownames") # merge with pdata
+  merge(stats, .pd2dt(pData(fs), custom_pdata = attr(fs, "custom_pdata")), by = ".rownames") # merge with pdata
 }
 
 .stat_gate_name <- function(fs, gates, value = NULL, ...){

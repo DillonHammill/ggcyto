@@ -335,7 +335,7 @@ as.ggplot <- function(x, pre_binning = FALSE){
     if(is.null(gate))
     {
       
-      pd <- .pd2dt(pData(fs))
+      pd <- .pd2dt(pData(fs), custom_pdata = attr(fs, "custom_pdata"))
       gates_parsed <- lapply(x$layers, function(layer){
         
         if(is.geom_gate_filterList(layer))#restore filter from fortified data.frame

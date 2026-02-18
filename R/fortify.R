@@ -67,19 +67,14 @@ fortify.flowFrame <- function(model, data, ...){
 
 #' convert pData to data.table
 #' @noRd 
-.pd2dt <- function(pd, pdata_order = NULL){
+.pd2dt <- function(pd, custom_pdata = NULL){
+  # Use custom pData if provided, otherwise use the original pd
+  if (!is.null(custom_pdata)) {
+    pd <- custom_pdata
+  }
+  
   pd <- as.data.table(pd, keep.rownames = TRUE)
   setnames(pd, "rn", ".rownames")
-  
-  # Apply factor ordering if specified
-  if (!is.null(pdata_order)) {
-    for (col_name in names(pdata_order)) {
-      if (col_name %in% colnames(pd)) {
-        levels_order <- pdata_order[[col_name]]
-        pd[[col_name]] <- factor(pd[[col_name]], levels = levels_order)
-      }
-    }
-  }
   
   pd
 }
@@ -111,9 +106,9 @@ fortify.flowSet <- function(model, data, ...){
   df <- .fs2dt(model)
 
   #merge with pData
-  # Get pdata_order attribute if it exists
-  pdata_order <- attr(model, "pdata_order")
-  pd <- .pd2dt(pData(model), pdata_order = pdata_order)
+  # Get custom_pdata attribute if it exists
+  custom_pdata <- attr(model, "custom_pdata")
+  pd <- .pd2dt(pData(model), custom_pdata = custom_pdata)
   
   merge(pd, df, by = ".rownames")
 
@@ -246,11 +241,11 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, ...){
       if(!is.null(pd)){
           # merge with pd
           
-        # Get pdata_order attribute if it exists
-        pdata_order <- attr(model, "pdata_order")
+        # Get custom_pdata attribute if it exists
+        custom_pdata <- attr(model, "custom_pdata")
         
         if(!is(pd, "data.table"))
-            pd <- .pd2dt(pd, pdata_order = pdata_order)
+            pd <- .pd2dt(pd, custom_pdata = custom_pdata)
         df <- merge(df, pd, by = ".rownames")  
         attr(df, "annotated") <- TRUE
       }

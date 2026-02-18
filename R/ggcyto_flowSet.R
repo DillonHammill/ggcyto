@@ -10,7 +10,8 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
   
   fs <- data
   
-  # If pData is supplied, validate and replace the flowSet pData
+  # If pData is supplied, validate and store as attribute
+  # Don't replace pData(fs) directly as it converts factors to characters
   if (!is.null(pData)) {
     original_pd <- pData(fs)
     
@@ -29,8 +30,8 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
     # Reorder supplied pData to match sample order in flowSet
     pData <- pData[rownames(original_pd), , drop = FALSE]
     
-    # Replace pData
-    pData(fs) <- pData
+    # Store as attribute for use during fortify
+    attr(fs, "custom_pdata") <- pData
   }
   
   #instead of using ggplot.default method to construct the ggplot object
@@ -212,18 +213,18 @@ add_ggcyto <- function(e1, e2, e2name){
   }else if(is.ggproto(e2)){
     layer_data <- e2$data  
     if(!is.null(layer_data)){
-      # Get pdata_order from fs if it exists
-      pdata_order <- attr(fs, "pdata_order")
-      pd <- .pd2dt(pData(fs), pdata_order = pdata_order)
+      # Get custom_pdata from fs if it exists
+      custom_pdata <- attr(fs, "custom_pdata")
+      pd <- .pd2dt(pData(fs), custom_pdata = custom_pdata)
     }
     
     if(is(layer_data, "filterList")){
       
       if(!isTRUE(attr(layer_data, "pd")))
         attr(layer_data, "pd") <- pd
-      # Propagate pdata_order attribute to filterList
-      if(!is.null(pdata_order))
-        attr(layer_data, "pdata_order") <- pdata_order
+      # Propagate custom_pdata attribute to filterList
+      if(!is.null(custom_pdata))
+        attr(layer_data, "custom_pdata") <- custom_pdata
       #do the lazy-fortify here since we  may need the pd info from main flow data
       
       layer_data <- fortify(layer_data)
