@@ -67,10 +67,10 @@ fortify.flowFrame <- function(model, data, ...){
 
 #' convert pData to data.table
 #' @noRd 
-.pd2dt <- function(pd, custom_pdata = NULL){
+.pd2dt <- function(pd, pData = NULL){
   # Use custom pData if provided, otherwise use the original pd
-  if (!is.null(custom_pdata)) {
-    pd <- custom_pdata
+  if (!is.null(pData)) {
+    pd <- pData
   }
   
   pd <- as.data.table(pd, keep.rownames = TRUE)
@@ -86,7 +86,7 @@ fortify.flowFrame <- function(model, data, ...){
 #' @param data not used.
 #' @param ... not used.
 #' 
-#' @param custom_pdata Optional custom pData to use instead of pData(model)
+#' @param pData Optional custom pData to use instead of pData(model)
 #' @export
 #' @aliases fortify
 #' @return data.table
@@ -102,12 +102,12 @@ fortify.flowFrame <- function(model, data, ...){
 #' 
 #' fr <- fs[[1]]
 #' fortify(fr)#fr is a flowFrame
-fortify.flowSet <- function(model, data, custom_pdata = NULL, ...){
+fortify.flowSet <- function(model, data, pData = NULL, ...){
   #convert to data.table
   df <- .fs2dt(model)
 
   #merge with pData
-  pd <- .pd2dt(pData(model), custom_pdata = custom_pdata)
+  pd <- .pd2dt(pData(model), pData = pData)
   
   merge(pd, df, by = ".rownames")
 
@@ -132,10 +132,10 @@ fortify.GatingSetList <- function(model, ...){
 
 #' @export
 #' @rdname fortify.flowSet
-fortify.GatingSet <- function(model, custom_pdata = NULL, ...){
+fortify.GatingSet <- function(model, pData = NULL, ...){
   
   fs <- fortify_fs(model, ...)
-  fortify(fs, custom_pdata = custom_pdata)
+  fortify(fs, pData = pData)
 }
 
 #' Convert a polygonGate to a data.table useful for ggplot
@@ -217,7 +217,7 @@ fortify.ellipsoidGate <- function(model, data = NULL, ...){
 #' @param model filterList
 #' @param data not used
 #' @param nPoints not used
-#' @param custom_pdata Optional custom pData to use
+#' @param pData Optional custom pData to use
 #' @param ... not used.
 #' 
 #' @importFrom plyr name_rows
@@ -229,7 +229,7 @@ fortify.ellipsoidGate <- function(model, data = NULL, ...){
 #' gates <- gs_pop_get_gate(gs, "CD4")
 #' gates <- as(gates, "filterList") #must convert list to filterList in order for the method to dispatch properly
 #' fortify(gates)
-fortify.filterList <- function(model, data = NULL, nPoints = NULL, custom_pdata = NULL, ...){
+fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL, ...){
       # convert each filter to df
       df <- .ldply(model, fortify
                       # , data = data
@@ -241,7 +241,7 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, custom_pdata 
           # merge with pd
           
         if(!is(pd, "data.table"))
-            pd <- .pd2dt(pd, custom_pdata = custom_pdata)
+            pd <- .pd2dt(pd, pData = pData)
         df <- merge(df, pd, by = ".rownames")  
         attr(df, "annotated") <- TRUE
       }

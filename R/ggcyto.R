@@ -185,9 +185,9 @@ as.ggplot <- function(x, pre_binning = FALSE){
       
     }else
       fs <- x[["data"]]
-    # Get custom_pdata from plot object
-    custom_pdata <- x[["custom_pdata"]]
-    x[["data"]] <- fortify(fs, custom_pdata = custom_pdata)
+    # Get pData from plot object
+    pData_custom <- x[["pData"]]
+    x[["data"]] <- fortify(fs, pData = pData_custom)
     data_range <- apply(x[["data"]][, chnls, with = FALSE], 2, range)
     rownames(data_range) <- c("min", "max")  
   }else
@@ -336,9 +336,9 @@ as.ggplot <- function(x, pre_binning = FALSE){
     #parse the gate from the each gate layer if it is not present in the current geom_stats layer
     if(is.null(gate))
     {
-      # Get custom_pdata from plot object
-      custom_pdata <- x[["custom_pdata"]]
-      pd <- .pd2dt(pData(fs), custom_pdata = custom_pdata)
+      # Get pData from plot object
+      pData_custom <- x[["pData"]]
+      pd <- .pd2dt(pData(fs), pData = pData_custom)
       gates_parsed <- lapply(x$layers, function(layer){
         
         if(is.geom_gate_filterList(layer))#restore filter from fortified data.frame
@@ -395,8 +395,8 @@ as.ggplot <- function(x, pre_binning = FALSE){
           location <- "data"
       }
       
-      # Get custom_pdata from plot object
-      custom_pdata <- x[["custom_pdata"]]
+      # Get pData from plot object
+      pData_custom <- x[["pData"]]
       stats <- compute_stats(fs, gate
                              , type = stat_type
                              , value = value
@@ -406,7 +406,7 @@ as.ggplot <- function(x, pre_binning = FALSE){
                              , adjust = adjust
                              , digits = digits
                              , location = location
-                             , custom_pdata = custom_pdata)
+                             , pData = pData_custom)
       
       #restore the stats dimensions to raw scale
       if(length(trans)>0)
