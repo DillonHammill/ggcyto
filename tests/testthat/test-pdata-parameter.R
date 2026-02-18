@@ -16,6 +16,10 @@ test_that("ggcyto accepts custom pData with factors for ordering", {
   expect_type(pData(p$data)$Patient, "character")
   expect_type(pData(p$data)$Visit, "character")
   
+  # Verify custom_pdata is stored in plot object, not as attribute on fs
+  expect_null(attr(p$data, "custom_pdata"))
+  expect_false(is.null(p[["custom_pdata"]]))
+  
   # Convert to ggplot to check the data
   p_gg <- as.ggplot(p)
   
