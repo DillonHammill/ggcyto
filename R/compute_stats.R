@@ -53,15 +53,10 @@ compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, pDat
   
   stats <- merge(centroids, stats, by = ".rownames") # merge stats with centroid
   
-  # Get pData
+  # Get pData and use data.table join to preserve factor levels
   pd <- .pd2dt(pData(fs), pData = pData)
-  
-  # Use data.table join which preserves factors from the first argument
-  # Set key for efficient join
   setkeyv(pd, ".rownames")
   setkeyv(stats, ".rownames")
-  
-  # Perform join - this preserves factor columns from pd
   pd[stats, on = ".rownames"]
 }
 

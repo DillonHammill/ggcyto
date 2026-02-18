@@ -109,12 +109,9 @@ fortify.flowSet <- function(model, data, pData = NULL, ...){
   #get pData
   pd <- .pd2dt(pData(model), pData = pData)
   
-  # Use data.table join which preserves factors from the first argument
-  # Set key for efficient join
+  # Use data.table join to preserve factor levels from pd
   setkeyv(pd, ".rownames")
   setkeyv(df, ".rownames")
-  
-  # Perform join - this preserves factor columns from pd
   pd[df, on = ".rownames"]
 
 }
@@ -249,12 +246,9 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL,
         if(!is(pd, "data.table"))
             pd <- .pd2dt(pd, pData = pData)
         
-        # Use data.table join which preserves factors from the first argument
-        # Set key for efficient join
+        # Use data.table join to preserve factor levels from pd
         setkeyv(pd, ".rownames")
         setkeyv(df, ".rownames")
-        
-        # Perform join - this preserves factor columns from pd
         df <- pd[df, on = ".rownames"]
         
         attr(df, "annotated") <- TRUE
