@@ -86,6 +86,7 @@ fortify.flowFrame <- function(model, data, ...){
 #' @param data not used.
 #' @param ... not used.
 #' 
+#' @param custom_pdata Optional custom pData to use instead of pData(model)
 #' @export
 #' @aliases fortify
 #' @return data.table
@@ -101,13 +102,11 @@ fortify.flowFrame <- function(model, data, ...){
 #' 
 #' fr <- fs[[1]]
 #' fortify(fr)#fr is a flowFrame
-fortify.flowSet <- function(model, data, ...){
+fortify.flowSet <- function(model, data, custom_pdata = NULL, ...){
   #convert to data.table
   df <- .fs2dt(model)
 
   #merge with pData
-  # Get custom_pdata attribute if it exists
-  custom_pdata <- attr(model, "custom_pdata")
   pd <- .pd2dt(pData(model), custom_pdata = custom_pdata)
   
   merge(pd, df, by = ".rownames")
@@ -132,12 +131,11 @@ fortify.GatingSetList <- function(model, ...){
 }
 
 #' @export
-#' @return data.table
 #' @rdname fortify.flowSet
-fortify.GatingSet <- function(model, ...){
+fortify.GatingSet <- function(model, custom_pdata = NULL, ...){
   
   fs <- fortify_fs(model, ...)
-  fortify(fs)
+  fortify(fs, custom_pdata = custom_pdata)
 }
 
 #' Convert a polygonGate to a data.table useful for ggplot
@@ -219,6 +217,7 @@ fortify.ellipsoidGate <- function(model, data = NULL, ...){
 #' @param model filterList
 #' @param data not used
 #' @param nPoints not used
+#' @param custom_pdata Optional custom pData to use
 #' @param ... not used.
 #' 
 #' @importFrom plyr name_rows
@@ -230,7 +229,7 @@ fortify.ellipsoidGate <- function(model, data = NULL, ...){
 #' gates <- gs_pop_get_gate(gs, "CD4")
 #' gates <- as(gates, "filterList") #must convert list to filterList in order for the method to dispatch properly
 #' fortify(gates)
-fortify.filterList <- function(model, data = NULL, nPoints = NULL, ...){
+fortify.filterList <- function(model, data = NULL, nPoints = NULL, custom_pdata = NULL, ...){
       # convert each filter to df
       df <- .ldply(model, fortify
                       # , data = data
@@ -241,9 +240,6 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, ...){
       if(!is.null(pd)){
           # merge with pd
           
-        # Get custom_pdata attribute if it exists
-        custom_pdata <- attr(model, "custom_pdata")
-        
         if(!is(pd, "data.table"))
             pd <- .pd2dt(pd, custom_pdata = custom_pdata)
         df <- merge(df, pd, by = ".rownames")  

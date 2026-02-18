@@ -9,6 +9,7 @@
 #' @param gates a list of filters
 #' @param type a vector of strings to specify the stats types. can be any or multiple values of "percent", "count", "gate_name", or "MFI" (MFI is currently not supported yet). 
 #' @param value the pre-calculated stats value. when supplied, the stats computing is skipped.
+#' @param custom_pdata Optional custom pData to use instead of pData(fs)
 #' @param ... other arguments passed to stat_position function
 #' @return
 #' a data.table that contains percent and centroid locations as well as pData
@@ -21,7 +22,7 @@
 #' rect.gates <- sapply(sampleNames(fs), function(sn)rect.g)
 #' compute_stats(fs, rect.gates)
 #' compute_stats(fs, rect.gates, type = c("gate_name", "percent"))
-compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, ...){
+compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, custom_pdata = NULL, ...){
   
   if(is.null(fs)&&(is.null(value)))
     stop("fs must be provided when 'value' is not supplied!")
@@ -51,7 +52,7 @@ compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, ...)
   centroids <- stat_position(gates, ...)
   
   stats <- merge(centroids, stats, by = ".rownames") # merge stats with centroid
-  merge(stats, .pd2dt(pData(fs), custom_pdata = attr(fs, "custom_pdata")), by = ".rownames") # merge with pdata
+  merge(stats, .pd2dt(pData(fs), custom_pdata = custom_pdata), by = ".rownames") # merge with pdata
 }
 
 .stat_gate_name <- function(fs, gates, value = NULL, ...){

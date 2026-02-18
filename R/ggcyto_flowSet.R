@@ -10,8 +10,10 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
   
   fs <- data
   
-  # If pData is supplied, validate and store as attribute
+  # If pData is supplied, validate and store in plot object
   # Don't replace pData(fs) directly as it converts factors to characters
+  # Don't store as attribute either - we'll pass it explicitly
+  custom_pdata <- NULL
   if (!is.null(pData)) {
     original_pd <- pData(fs)
     
@@ -30,8 +32,8 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
     # Reorder supplied pData to match sample order in flowSet
     pData <- pData[rownames(original_pd), , drop = FALSE]
     
-    # Store as attribute for use during fortify
-    attr(fs, "custom_pdata") <- pData
+    # Store for later use (will be stored in plot object)
+    custom_pdata <- pData
   }
   
   #instead of using ggplot.default method to construct the ggplot object
@@ -102,6 +104,9 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
   p[["ggcyto_pars"]] <- list()
   
   p[["GeomStats"]] <- list()
+  
+  # Store custom_pdata in the plot object
+  p[["custom_pdata"]] <- custom_pdata
   
   p <- p + ggcyto_par_default()
   # the counts at legend could be reflecting the subsampled data and we want to hide this from user to avoid confusion
@@ -213,8 +218,8 @@ add_ggcyto <- function(e1, e2, e2name){
   }else if(is.ggproto(e2)){
     layer_data <- e2$data  
     if(!is.null(layer_data)){
-      # Get custom_pdata from fs if it exists
-      custom_pdata <- attr(fs, "custom_pdata")
+      # Get custom_pdata from plot object
+      custom_pdata <- e1[["custom_pdata"]]
       pd <- .pd2dt(pData(fs), custom_pdata = custom_pdata)
     }
     
@@ -222,12 +227,9 @@ add_ggcyto <- function(e1, e2, e2name){
       
       if(!isTRUE(attr(layer_data, "pd")))
         attr(layer_data, "pd") <- pd
-      # Propagate custom_pdata attribute to filterList
-      if(!is.null(custom_pdata))
-        attr(layer_data, "custom_pdata") <- custom_pdata
       #do the lazy-fortify here since we  may need the pd info from main flow data
       
-      layer_data <- fortify(layer_data)
+      layer_data <- fortify(layer_data, custom_pdata = custom_pdata)
       
       attr(layer_data, "annotated") <- TRUE
       e2$data <- layer_data
