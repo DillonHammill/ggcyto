@@ -42,7 +42,7 @@
 #'
 #' #To display the gate name
 #' #autoplot(gh , strip.text = "gate")
-#' @param pData Optional data.frame to replace the pData of the flowSet/GatingSet. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order.
+#' @param pData Optional data.frame to use in place of the flowSet/GatingSet pData during plotting. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order. The original pData is not modified.
 #' @export
 #' @export autoplot
 autoplot.flowSet <- function(object, x, y = NULL, bins = 30, pData = NULL, ...){

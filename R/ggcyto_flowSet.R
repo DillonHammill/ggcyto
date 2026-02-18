@@ -3,7 +3,7 @@ ggcyto.cytoset <- function(data, ...){
   getS3method("ggcyto", "flowSet")(data, ...)
 }
 #' @rdname ggcyto
-#' @param pData Optional data.frame to replace the pData of the flowSet/GatingSet. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order.
+#' @param pData Optional data.frame to use in place of the flowSet/GatingSet pData during plotting. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order. The original pData is not modified.
 #' @export
 ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4, pData = NULL, ...){
   #add empty layers recording

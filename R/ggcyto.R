@@ -23,7 +23,7 @@
 #' @param subset character that specifies the node path or node name in the case of GatingSet. 
 #'               Default is "_parent_", which will be substituted with the actual node name 
 #'               based on the geom_gate layer to be added later.
-#' @param pData Optional data.frame to replace the pData of the flowSet/GatingSet. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order in faceted plots.
+#' @param pData Optional data.frame to use in place of the flowSet/GatingSet pData during plotting. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order in faceted plots. The original pData is not modified.
 #' @param ... other arguments passed to specific methods
 #' @return ggcyto object 
 #' @examples
