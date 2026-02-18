@@ -102,7 +102,7 @@ fortify.flowFrame <- function(model, data, ...){
 #' 
 #' fr <- fs[[1]]
 #' fortify(fr)#fr is a flowFrame
-fortify.flowSet <- function(model, data, pData = NULL, ...){
+fortify.flowSet <- function(model, data, pData = NULL){
   #convert to data.table
   df <- .fs2dt(model)
 
@@ -232,7 +232,7 @@ fortify.ellipsoidGate <- function(model, data = NULL, ...){
 #' gates <- gs_pop_get_gate(gs, "CD4")
 #' gates <- as(gates, "filterList") #must convert list to filterList in order for the method to dispatch properly
 #' fortify(gates)
-fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL, ...){
+fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL){
       # convert each filter to df
       df <- .ldply(model, fortify
                       # , data = data
