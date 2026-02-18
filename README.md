@@ -29,6 +29,21 @@ The package overloads ggplot's `fortify` S3 method so that `Cytometry` data stru
 * [ggplot + flowSet + gate](vignettes/advanced/ggplot.flowSet.gate.md)
 * [ggplot + flowSet + overlay](vignettes/advanced/ggplot.flowSet.overlay.md)
 
+# Control plotting order
+
+By default, metadata in pData is stored as character strings, which results in alphabetical ordering in faceted plots. You can control the plotting order by supplying a custom pData with factor columns:
+
+```r
+# Create custom pData with factors for ordering
+custom_pd <- pData(fs)
+custom_pd$Patient <- factor(custom_pd$Patient, levels = c("7", "6", "5"))
+
+# Use custom pData in plot
+ggcyto(fs, aes(x = `FSC-H`), pData = custom_pd) + 
+  geom_histogram() + 
+  facet_grid(Patient~Visit)
+```
+
 # quick demos of some most used features 
 
 

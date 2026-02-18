@@ -3,11 +3,34 @@ ggcyto.cytoset <- function(data, ...){
   getS3method("ggcyto", "flowSet")(data, ...)
 }
 #' @rdname ggcyto
+#' @param pData Optional data.frame to use in place of the flowSet/GatingSet pData during plotting. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order. The original pData is not modified.
 #' @export
-ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4, ...){
+ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4, pData = NULL, ...){
   #add empty layers recording
   
   fs <- data
+  
+  # If pData is supplied, validate and store in plot object
+  # Don't replace pData(fs) directly as it converts factors to characters
+  # Don't store as attribute either - we'll pass it explicitly
+  if (!is.null(pData)) {
+    original_pd <- pData(fs)
+    
+    # Validate that rownames match
+    if (!identical(sort(rownames(pData)), sort(rownames(original_pd)))) {
+      stop("Supplied pData rownames must match the sample names in the flowSet")
+    }
+    
+    # Validate that columns exist (allow additional columns in supplied pData)
+    missing_cols <- setdiff(colnames(original_pd), colnames(pData))
+    if (length(missing_cols) > 0) {
+      warning("Some columns from original pData are missing in supplied pData: ",
+              paste(missing_cols, collapse = ", "))
+    }
+    
+    # Reorder supplied pData to match sample order in flowSet
+    pData <- pData[rownames(original_pd), , drop = FALSE]
+  }
   
   #instead of using ggplot.default method to construct the ggplot object
   # we call the underlining s3 method directly to avoid fortifying data at this stage
@@ -77,6 +100,9 @@ ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4,
   p[["ggcyto_pars"]] <- list()
   
   p[["GeomStats"]] <- list()
+  
+  # Store pData in the plot object
+  p[["pData"]] <- pData
   
   p <- p + ggcyto_par_default()
   # the counts at legend could be reflecting the subsampled data and we want to hide this from user to avoid confusion
@@ -188,7 +214,9 @@ add_ggcyto <- function(e1, e2, e2name){
   }else if(is.ggproto(e2)){
     layer_data <- e2$data  
     if(!is.null(layer_data)){
-      pd <- .pd2dt(pData(fs))
+      # Get pData from plot object
+      pData_custom <- e1[["pData"]]
+      pd <- .pd2dt(pData(fs), pData = pData_custom)
     }
     
     if(is(layer_data, "filterList")){
@@ -197,7 +225,7 @@ add_ggcyto <- function(e1, e2, e2name){
         attr(layer_data, "pd") <- pd
       #do the lazy-fortify here since we  may need the pd info from main flow data
       
-      layer_data <- fortify(layer_data)
+      layer_data <- fortify(layer_data, pData = pData_custom)
       
       attr(layer_data, "annotated") <- TRUE
       e2$data <- layer_data

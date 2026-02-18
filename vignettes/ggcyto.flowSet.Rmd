@@ -46,6 +46,25 @@ pData(fs)
 p1 + facet_grid(Patient~Visit)
 ```
 
+### Setting custom plotting order
+
+By default, pData variables are stored as character strings and are ordered alphabetically in plots.
+You can control the plotting order by supplying a custom pData data.frame with factor columns:
+
+```{r}
+# Default alphabetical ordering: Patient 5, 6, 7
+p1 + facet_grid(Patient~Visit)
+
+# Create custom pData with factors for custom ordering
+custom_pd <- pData(fs)
+custom_pd$Patient <- factor(custom_pd$Patient, levels = c("7", "6", "5"))
+custom_pd$Visit <- factor(custom_pd$Visit, levels = c("6", "5"))
+
+# Use custom pData in plot: now ordered as Patient 7, 6, 5
+p_custom <- ggcyto(fs, aes(x = `FSC-H`), pData = custom_pd) + geom_histogram()
+p_custom + facet_grid(Patient~Visit)
+```
+
 To display 1d density
 ```{r}
 p + geom_density()

@@ -23,6 +23,7 @@
 #' @param subset character that specifies the node path or node name in the case of GatingSet. 
 #'               Default is "_parent_", which will be substituted with the actual node name 
 #'               based on the geom_gate layer to be added later.
+#' @param pData Optional data.frame to use in place of the flowSet/GatingSet pData during plotting. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order in faceted plots. The original pData is not modified.
 #' @param ... other arguments passed to specific methods
 #' @return ggcyto object 
 #' @examples
@@ -184,7 +185,9 @@ as.ggplot <- function(x, pre_binning = FALSE){
       
     }else
       fs <- x[["data"]]
-    x[["data"]] <- fortify(fs)
+    # Get pData from plot object
+    pData_custom <- x[["pData"]]
+    x[["data"]] <- fortify(fs, pData = pData_custom)
     data_range <- apply(x[["data"]][, chnls, with = FALSE], 2, range)
     rownames(data_range) <- c("min", "max")  
   }else
@@ -333,8 +336,9 @@ as.ggplot <- function(x, pre_binning = FALSE){
     #parse the gate from the each gate layer if it is not present in the current geom_stats layer
     if(is.null(gate))
     {
-      
-      pd <- .pd2dt(pData(fs))
+      # Get pData from plot object
+      pData_custom <- x[["pData"]]
+      pd <- .pd2dt(pData(fs), pData = pData_custom)
       gates_parsed <- lapply(x$layers, function(layer){
         
         if(is.geom_gate_filterList(layer))#restore filter from fortified data.frame
@@ -390,7 +394,9 @@ as.ggplot <- function(x, pre_binning = FALSE){
           #bypass stats_postion computing to use data_range as gate_range(as a hack for now)
           location <- "data"
       }
-        
+      
+      # Get pData from plot object
+      pData_custom <- x[["pData"]]
       stats <- compute_stats(fs, gate
                              , type = stat_type
                              , value = value
@@ -399,7 +405,8 @@ as.ggplot <- function(x, pre_binning = FALSE){
                              , negated = negated
                              , adjust = adjust
                              , digits = digits
-                             , location = location)
+                             , location = location
+                             , pData = pData_custom)
       
       #restore the stats dimensions to raw scale
       if(length(trans)>0)
