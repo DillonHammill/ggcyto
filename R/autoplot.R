@@ -42,18 +42,19 @@
 #'
 #' #To display the gate name
 #' #autoplot(gh , strip.text = "gate")
+#' @param pData Optional data.frame to replace the pData of the flowSet/GatingSet. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order.
 #' @export
 #' @export autoplot
-autoplot.flowSet <- function(object, x, y = NULL, bins = 30, ...){
+autoplot.flowSet <- function(object, x, y = NULL, bins = 30, pData = NULL, ...){
 
   # check the dimensions
   if(missing(x))
     stop("'x' must be supplied to ggplot!")
   if(is.null(y)){
-    p <- ggcyto(object, aes_q(x = as.symbol(x)), ...)  #aes_string doesn't play well with special character (e.g. '-')
+    p <- ggcyto(object, aes_q(x = as.symbol(x)), pData = pData, ...)  #aes_string doesn't play well with special character (e.g. '-')
     p <- p + geom_density(fill = "black")
   }else{
-    p <- ggcyto(object, aes_q(x = as.symbol(x), y = as.symbol(y)), ...)
+    p <- ggcyto(object, aes_q(x = as.symbol(x), y = as.symbol(y)), pData = pData, ...)
     p <- p + geom_hex(bins = bins)
 
   }
@@ -135,7 +136,7 @@ autoplot.GatingSetList <- function(object, ...){
 #' @param gate the gate to be plotted
 #' @export
 #' @rdname autoplot
-autoplot.GatingSet <- function(object, gate, x = NULL,  y = "SSC-A", bins = 30, axis_inverse_trans = TRUE, ...){
+autoplot.GatingSet <- function(object, gate, x = NULL,  y = "SSC-A", bins = 30, axis_inverse_trans = TRUE, pData = NULL, ...){
   if(missing(gate))
     stop("Must specifiy 'gate'!")
   g <- gh_pop_get_gate(object[[1]], gate[1])
@@ -163,7 +164,7 @@ autoplot.GatingSet <- function(object, gate, x = NULL,  y = "SSC-A", bins = 30, 
 
   mapping <- aes_q(x = as.symbol(x), y = as.symbol(y))
 
-  p <- ggcyto(object, mapping, ...) + geom_hex(bins = bins) + geom_gate(gate) + geom_stats()
+  p <- ggcyto(object, mapping, pData = pData, ...) + geom_hex(bins = bins) + geom_gate(gate) + geom_stats()
   p <- p + ggcyto_par_set(limits = "instrument")
   if(axis_inverse_trans)
     p <- p + axis_x_inverse_trans() + axis_y_inverse_trans()

@@ -31,12 +31,17 @@ The package overloads ggplot's `fortify` S3 method so that `Cytometry` data stru
 
 # Control plotting order
 
-By default, metadata in pData is stored as character strings, which results in alphabetical ordering in faceted plots. Use `set_pdata_order()` to control the plotting order:
+By default, metadata in pData is stored as character strings, which results in alphabetical ordering in faceted plots. You can control the plotting order by supplying a custom pData with factor columns:
 
 ```r
-# Set custom order for faceting
-fs <- set_pdata_order(fs, Patient = c("7", "6", "5"))
-ggcyto(fs, aes(x = `FSC-H`)) + geom_histogram() + facet_grid(Patient~Visit)
+# Create custom pData with factors for ordering
+custom_pd <- pData(fs)
+custom_pd$Patient <- factor(custom_pd$Patient, levels = c("7", "6", "5"))
+
+# Use custom pData in plot
+ggcyto(fs, aes(x = `FSC-H`), pData = custom_pd) + 
+  geom_histogram() + 
+  facet_grid(Patient~Visit)
 ```
 
 # quick demos of some most used features 

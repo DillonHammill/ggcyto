@@ -3,11 +3,35 @@ ggcyto.cytoset <- function(data, ...){
   getS3method("ggcyto", "flowSet")(data, ...)
 }
 #' @rdname ggcyto
+#' @param pData Optional data.frame to replace the pData of the flowSet/GatingSet. Must have the same sample names (rownames) as the original pData. Columns can have different classes (e.g., factors with custom levels) to control plotting order.
 #' @export
-ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4, ...){
+ggcyto.flowSet <- function(data, mapping, filter = NULL, max_nrow_to_plot = 5e4, pData = NULL, ...){
   #add empty layers recording
   
   fs <- data
+  
+  # If pData is supplied, validate and replace the flowSet pData
+  if (!is.null(pData)) {
+    original_pd <- pData(fs)
+    
+    # Validate that rownames match
+    if (!identical(sort(rownames(pData)), sort(rownames(original_pd)))) {
+      stop("Supplied pData rownames must match the sample names in the flowSet")
+    }
+    
+    # Validate that columns exist (allow additional columns in supplied pData)
+    missing_cols <- setdiff(colnames(original_pd), colnames(pData))
+    if (length(missing_cols) > 0) {
+      warning("Some columns from original pData are missing in supplied pData: ",
+              paste(missing_cols, collapse = ", "))
+    }
+    
+    # Reorder supplied pData to match sample order in flowSet
+    pData <- pData[rownames(original_pd), , drop = FALSE]
+    
+    # Replace pData
+    pData(fs) <- pData
+  }
   
   #instead of using ggplot.default method to construct the ggplot object
   # we call the underlining s3 method directly to avoid fortifying data at this stage
