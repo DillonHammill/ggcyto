@@ -106,31 +106,16 @@ fortify.flowSet <- function(model, data, pData = NULL, ...){
   #convert to data.table
   df <- .fs2dt(model)
 
-  #merge with pData
+  #get pData
   pd <- .pd2dt(pData(model), pData = pData)
   
-  # Save factor columns info before merge to preserve them
-  factor_info <- lapply(names(pd), function(col) {
-    if(is.factor(pd[[col]])) {
-      list(levels = levels(pd[[col]]), ordered = is.ordered(pd[[col]]))
-    } else {
-      NULL
-    }
-  })
-  names(factor_info) <- names(pd)
+  # Use data.table join which preserves factors from the first argument
+  # Set key for efficient join
+  setkeyv(pd, ".rownames")
+  setkeyv(df, ".rownames")
   
-  result <- merge(pd, df, by = ".rownames", sort = FALSE)
-  
-  # Restore factor columns with their original levels
-  for(col_name in names(factor_info)) {
-    if(!is.null(factor_info[[col_name]])) {
-      result[[col_name]] <- factor(result[[col_name]], 
-                                    levels = factor_info[[col_name]]$levels,
-                                    ordered = factor_info[[col_name]]$ordered)
-    }
-  }
-  
-  result
+  # Perform join - this preserves factor columns from pd
+  pd[df, on = ".rownames"]
 
 }
 
@@ -259,31 +244,18 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL,
     
       pd <- attr(model,"pd")
       if(!is.null(pd)){
-          # merge with pd
+          # get pd
           
         if(!is(pd, "data.table"))
             pd <- .pd2dt(pd, pData = pData)
         
-        # Save factor columns info before merge to preserve them
-        factor_info <- lapply(names(pd), function(col) {
-          if(is.factor(pd[[col]])) {
-            list(levels = levels(pd[[col]]), ordered = is.ordered(pd[[col]]))
-          } else {
-            NULL
-          }
-        })
-        names(factor_info) <- names(pd)
+        # Use data.table join which preserves factors from the first argument
+        # Set key for efficient join
+        setkeyv(pd, ".rownames")
+        setkeyv(df, ".rownames")
         
-        df <- merge(df, pd, by = ".rownames", sort = FALSE)
-        
-        # Restore factor columns with their original levels
-        for(col_name in names(factor_info)) {
-          if(!is.null(factor_info[[col_name]])) {
-            df[[col_name]] <- factor(df[[col_name]], 
-                                      levels = factor_info[[col_name]]$levels,
-                                      ordered = factor_info[[col_name]]$ordered)
-          }
-        }
+        # Perform join - this preserves factor columns from pd
+        df <- pd[df, on = ".rownames"]
         
         attr(df, "annotated") <- TRUE
       }

@@ -53,31 +53,16 @@ compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, pDat
   
   stats <- merge(centroids, stats, by = ".rownames") # merge stats with centroid
   
-  # Get pData and preserve factor levels
+  # Get pData
   pd <- .pd2dt(pData(fs), pData = pData)
   
-  # Save factor columns info before merge to preserve them
-  factor_info <- lapply(names(pd), function(col) {
-    if(is.factor(pd[[col]])) {
-      list(levels = levels(pd[[col]]), ordered = is.ordered(pd[[col]]))
-    } else {
-      NULL
-    }
-  })
-  names(factor_info) <- names(pd)
+  # Use data.table join which preserves factors from the first argument
+  # Set key for efficient join
+  setkeyv(pd, ".rownames")
+  setkeyv(stats, ".rownames")
   
-  result <- merge(stats, pd, by = ".rownames", sort = FALSE)
-  
-  # Restore factor columns with their original levels
-  for(col_name in names(factor_info)) {
-    if(!is.null(factor_info[[col_name]])) {
-      result[[col_name]] <- factor(result[[col_name]], 
-                                    levels = factor_info[[col_name]]$levels,
-                                    ordered = factor_info[[col_name]]$ordered)
-    }
-  }
-  
-  result
+  # Perform join - this preserves factor columns from pd
+  pd[stats, on = ".rownames"]
 }
 
 .stat_gate_name <- function(fs, gates, value = NULL, ...){
