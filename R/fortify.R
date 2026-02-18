@@ -109,7 +109,28 @@ fortify.flowSet <- function(model, data, pData = NULL, ...){
   #merge with pData
   pd <- .pd2dt(pData(model), pData = pData)
   
-  merge(pd, df, by = ".rownames")
+  # Save factor columns info before merge to preserve them
+  factor_info <- lapply(names(pd), function(col) {
+    if(is.factor(pd[[col]])) {
+      list(levels = levels(pd[[col]]), ordered = is.ordered(pd[[col]]))
+    } else {
+      NULL
+    }
+  })
+  names(factor_info) <- names(pd)
+  
+  result <- merge(pd, df, by = ".rownames", sort = FALSE)
+  
+  # Restore factor columns with their original levels
+  for(col_name in names(factor_info)) {
+    if(!is.null(factor_info[[col_name]])) {
+      result[[col_name]] <- factor(result[[col_name]], 
+                                    levels = factor_info[[col_name]]$levels,
+                                    ordered = factor_info[[col_name]]$ordered)
+    }
+  }
+  
+  result
 
 }
 
@@ -242,7 +263,28 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL,
           
         if(!is(pd, "data.table"))
             pd <- .pd2dt(pd, pData = pData)
-        df <- merge(df, pd, by = ".rownames")  
+        
+        # Save factor columns info before merge to preserve them
+        factor_info <- lapply(names(pd), function(col) {
+          if(is.factor(pd[[col]])) {
+            list(levels = levels(pd[[col]]), ordered = is.ordered(pd[[col]]))
+          } else {
+            NULL
+          }
+        })
+        names(factor_info) <- names(pd)
+        
+        df <- merge(df, pd, by = ".rownames", sort = FALSE)
+        
+        # Restore factor columns with their original levels
+        for(col_name in names(factor_info)) {
+          if(!is.null(factor_info[[col_name]])) {
+            df[[col_name]] <- factor(df[[col_name]], 
+                                      levels = factor_info[[col_name]]$levels,
+                                      ordered = factor_info[[col_name]]$ordered)
+          }
+        }
+        
         attr(df, "annotated") <- TRUE
       }
       # attr(df, "nPoints") <- nPoints
