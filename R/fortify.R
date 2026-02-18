@@ -106,10 +106,13 @@ fortify.flowSet <- function(model, data, pData = NULL, ...){
   #convert to data.table
   df <- .fs2dt(model)
 
-  #merge with pData
+  #get pData
   pd <- .pd2dt(pData(model), pData = pData)
   
-  merge(pd, df, by = ".rownames")
+  # Use data.table join to preserve factor levels from pd
+  setkeyv(pd, ".rownames")
+  setkeyv(df, ".rownames")
+  pd[df, on = ".rownames"]
 
 }
 
@@ -238,11 +241,16 @@ fortify.filterList <- function(model, data = NULL, nPoints = NULL, pData = NULL,
     
       pd <- attr(model,"pd")
       if(!is.null(pd)){
-          # merge with pd
+          # get pd
           
         if(!is(pd, "data.table"))
             pd <- .pd2dt(pd, pData = pData)
-        df <- merge(df, pd, by = ".rownames")  
+        
+        # Use data.table join to preserve factor levels from pd
+        setkeyv(pd, ".rownames")
+        setkeyv(df, ".rownames")
+        df <- pd[df, on = ".rownames"]
+        
         attr(df, "annotated") <- TRUE
       }
       # attr(df, "nPoints") <- nPoints

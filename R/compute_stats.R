@@ -52,7 +52,12 @@ compute_stats <- function(fs = NULL, gates, type = "percent", value = NULL, pDat
   centroids <- stat_position(gates, ...)
   
   stats <- merge(centroids, stats, by = ".rownames") # merge stats with centroid
-  merge(stats, .pd2dt(pData(fs), pData = pData), by = ".rownames") # merge with pdata
+  
+  # Get pData and use data.table join to preserve factor levels
+  pd <- .pd2dt(pData(fs), pData = pData)
+  setkeyv(pd, ".rownames")
+  setkeyv(stats, ".rownames")
+  pd[stats, on = ".rownames"]
 }
 
 .stat_gate_name <- function(fs, gates, value = NULL, ...){
