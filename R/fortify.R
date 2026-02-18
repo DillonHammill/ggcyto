@@ -135,10 +135,10 @@ fortify.GatingSetList <- function(model, ...){
 
 #' @export
 #' @rdname fortify.flowSet
-fortify.GatingSet <- function(model, pData = NULL, ...){
+fortify.GatingSet <- function(model, ...){
   
   fs <- fortify_fs(model, ...)
-  fortify(fs, pData = pData)
+  fortify(fs, ...)
 }
 
 #' Convert a polygonGate to a data.table useful for ggplot
